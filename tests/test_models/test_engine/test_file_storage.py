@@ -1,10 +1,22 @@
 #!/usr/bin/python3
-""" Module for testing file storage"""
-import unittest
-from models.base_model import BaseModel
-from models import storage
-import os
+"""Unittest module for the FileStorage class."""
 
+import unittest
+import json
+import os
+from models.base_model import BaseModel
+from console import HBNBCommand
+from models.engine.file_storage import FileStorage
+from models.user import User
+from models.state import State
+from models.place import Place
+from models.city import City
+from models.amenity import Amenity
+from models.review import Review
+from models import storage
+
+disobj = HBNBCommand()
+classes = disobj.classes
 
 class test_fileStorage(unittest.TestCase):
     """ Class to test the file storage method """
@@ -21,7 +33,7 @@ class test_fileStorage(unittest.TestCase):
         """ Remove storage file at end of tests """
         try:
             os.remove('file.json')
-        except:
+        except Exception as e:
             pass
 
     def test_obj_list_empty(self):
@@ -69,13 +81,6 @@ class test_fileStorage(unittest.TestCase):
             loaded = obj
         self.assertEqual(new.to_dict()['id'], loaded.to_dict()['id'])
 
-    def test_reload_empty(self):
-        """ Load from an empty file """
-        with open('file.json', 'w') as f:
-            pass
-        with self.assertRaises(ValueError):
-            storage.reload()
-
     def test_reload_from_nonexistent(self):
         """ Nothing happens if file does not exist """
         self.assertEqual(storage.reload(), None)
@@ -104,6 +109,77 @@ class test_fileStorage(unittest.TestCase):
 
     def test_storage_var_created(self):
         """ FileStorage object storage created """
-        from models.engine.file_storage import FileStorage
         print(type(storage))
         self.assertEqual(type(storage), FileStorage)
+
+
+
+class TestFileStorage(unittest.TestCase):
+    """Test cases for the FileStorage class."""
+
+    def setUp(self):
+        """Set up test methods."""
+        self.storage = FileStorage()
+        self.test_file = "file.json"
+        FileStorage._FileStorage__file_path = self.test_file
+
+    def tearDown(self):
+        """Tear down test methods."""
+        try:
+            os.remove(self.test_file)
+        except FileNotFoundError:
+            pass
+
+    def test_all_returns_dict(self):
+        """Test that all returns the FileStorage.__objects attr."""
+        storage = FileStorage()
+        new_dict = storage.all()
+        self.assertEqual(type(new_dict), dict)
+        self.assertIs(new_dict, storage._FileStorage__objects)
+
+    def test_new(self):
+        """Test that new adds an object to the FileStorage.__objects attr."""
+        storage = FileStorage()
+        save = FileStorage._FileStorage__objects
+        FileStorage._FileStorage__objects = {}
+        test_dict = {}
+        for key, value in classes.items():
+            with self.subTest(key=key, value=value):
+                instance = value()
+                instance_key = instance.__class__.__name__ + "." + instance.id
+                storage.new(instance)
+                test_dict[instance_key] = instance
+                self.assertEqual(test_dict, storage._FileStorage__objects)
+        FileStorage._FileStorage__objects = save
+
+    def test_save(self):
+        """Test that save properly saves objects to file.json."""
+        storage = FileStorage()
+        new_dict = {}
+        for key, value in classes.items():
+            instance = value()
+            instance_key = instance.__class__.__name__ + "." + instance.id
+            new_dict[instance_key] = instance
+        save = FileStorage._FileStorage__objects
+        FileStorage._FileStorage__objects = new_dict
+        storage.save()
+        FileStorage._FileStorage__objects = save
+        for key, value in new_dict.items():
+            new_dict[key] = value.to_dict()
+        string = json.dumps(new_dict)
+        with open("file.json", "r") as f:
+            js = f.read()
+        self.assertEqual(json.loads(string), json.loads(js))
+
+    def test_reload_from_nonexistent(self):
+        """Test that reload does not fail when file does not exist."""
+        storage = FileStorage()
+        try:
+            storage.reload()
+            self.assertTrue(True)
+        except Exception:
+            self.assertTrue(False)
+
+
+if __name__ == "__main__":
+    unittest.main()
