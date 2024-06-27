@@ -23,11 +23,12 @@ class TestHBNBCommand(unittest.TestCase):
     @patch('sys.stdout', new_callable=StringIO)
     def test_create_with_parameters(self, mock_stdout):
         """Test create command with parameters"""
-        self.console.onecmd('create BaseModel name="Test_Model" number=123 float_val=1.23')
+        s = 'create BaseModel name="Test_Model" number=123 float_val=1.23'
+        self.console.onecmd(s)
         obj_id = mock_stdout.getvalue().strip()
-        
+
         self.assertTrue(obj_id)  # Check if an ID was printed
-        
+
         obj = storage.all()[f"BaseModel.{obj_id}"]
         self.assertEqual(obj.name, "Test Model")
         self.assertEqual(obj.number, 123)
@@ -38,9 +39,9 @@ class TestHBNBCommand(unittest.TestCase):
         """Test create command with invalid parameters"""
         self.console.onecmd('create BaseModel invalid_param name="Valid_Name"')
         obj_id = mock_stdout.getvalue().strip()
-        
+
         self.assertTrue(obj_id)  # Check if an ID was printed
-        
+
         obj = storage.all()[f"BaseModel.{obj_id}"]
         self.assertEqual(obj.name, "Valid Name")
         self.assertFalse(hasattr(obj, 'invalid_param'))
@@ -50,11 +51,12 @@ class TestHBNBCommand(unittest.TestCase):
         """Test create command with escaped quotes in string parameter"""
         self.console.onecmd('create BaseModel name="Test_\\"Quoted\\"_Name"')
         obj_id = mock_stdout.getvalue().strip()
-        
+
         self.assertTrue(obj_id)  # Check if an ID was printed
-        
+
         obj = storage.all()[f"BaseModel.{obj_id}"]
         self.assertEqual(obj.name, 'Test "Quoted" Name')
+
 
 if __name__ == "__main__":
     unittest.main()
