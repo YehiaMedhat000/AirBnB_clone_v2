@@ -21,7 +21,7 @@ fi
 
 # Create a fake HTML file /data/web_static/releases/test/index.html
 if ! [ -f /data/web_static/releases/test/index.html ]; then
-    sudo echo '
+    echo '
 <!DOCTYPE html>
 <html>
 <head>
