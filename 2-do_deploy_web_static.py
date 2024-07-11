@@ -9,6 +9,7 @@ from os.path import exists
 
 env.hosts = ['35.237.166.125', '54.167.61.201']  # <IP web-01>, <IP web-02>
 
+
 def do_deploy(archive_path):
     """ distributes an archive to my web servers
     """
@@ -38,5 +39,5 @@ def do_deploy(archive_path):
         # web server, linked to the new version of your code
         # (/data/web_static/releases/<archive filename without extension>)
         return True
-    except:
+    except Exception as e:
         return False
